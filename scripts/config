@@ -1,0 +1,31 @@
+#!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Custom apply hook for the LLM-provider config panel. Default YNH apply
+# only writes settings; we additionally re-render $install_dir/.env from
+# the new settings and bounce the service so the new credentials take
+# effect immediately.
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+# Override the apply hook to re-render .env and bounce the service after
+# YNH has persisted the new settings. Defining this BEFORE calling
+# ynh_app_config_run is what wires it in.
+ynh_app_config_apply() {
+    _ynh_app_config_apply
+
+    local share_secret
+    share_secret="$(ynh_app_setting_get --key=share_secret)"
+    if [ -z "$share_secret" ]; then
+        # Older installs: backfill so the share_secret survives panel edits.
+        share_secret="$(openssl rand -hex 32)"
+        ynh_app_setting_set --key=share_secret --value="$share_secret"
+    fi
+
+    render_env_file "$install_dir" "$llm_provider" "$llm_api_key" "$ollama_url" "$share_secret"
+
+    ynh_systemctl --service="$app" --action="restart" --log_path="systemd"
+}
+
+ynh_app_config_run "$@"

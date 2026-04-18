@@ -47,6 +47,22 @@ ynh_script_progression "Preparing data directory..."
 chown -R "$app:$app" "$data_dir"
 
 #=================================================
+# PROVIDER ENV FILE
+#=================================================
+ynh_script_progression "Writing provider credentials to $install_dir/.env..."
+
+# Persist the operator's choices as YNH app settings so the config panel
+# (and upgrade scripts) can read/edit them later.
+ynh_app_setting_set --key=llm_provider --value="$llm_provider"
+ynh_app_setting_set --key=llm_api_key --value="$llm_api_key"
+ynh_app_setting_set --key=ollama_url --value="$ollama_url"
+
+share_secret="$(openssl rand -hex 32)"
+ynh_app_setting_set --key=share_secret --value="$share_secret"
+
+render_env_file "$install_dir" "$llm_provider" "$llm_api_key" "$ollama_url" "$share_secret"
+
+#=================================================
 # SYSTEMD
 #=================================================
 ynh_script_progression "Configuring systemd service..."

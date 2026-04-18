@@ -1,0 +1,33 @@
+#:schema https://raw.githubusercontent.com/YunoHost/apps/main/schemas/config_panel.v1.schema.json
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+version = "1.0"
+
+[main]
+name.en = "LLM provider"
+name.fr = "Fournisseur LLM"
+
+    [main.providers]
+    name.en = "Provider credentials"
+    name.fr = "Identifiants du fournisseur"
+    help.en = "Switch providers or rotate keys without reinstalling. Changes restart the Ahwa service."
+    help.fr = "Changer de fournisseur ou faire tourner les clés sans réinstaller. Les modifications redémarrent le service Ahwa."
+
+        [main.providers.llm_provider]
+        ask.en = "LLM provider"
+        ask.fr = "Fournisseur LLM"
+        type = "select"
+        choices = ["openrouter", "anthropic", "openai", "ollama"]
+
+        [main.providers.llm_api_key]
+        ask.en = "API key (blank for Ollama)"
+        ask.fr = "Clé API (vide pour Ollama)"
+        type = "password"
+        optional = true
+
+        [main.providers.ollama_url]
+        ask.en = "Ollama base URL"
+        ask.fr = "URL de base Ollama"
+        type = "string"
+        optional = true
+        default = "http://localhost:11434/api"

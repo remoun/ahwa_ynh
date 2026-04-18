@@ -24,6 +24,16 @@ ynh_script_progression "Re-rendering systemd + nginx (in case templates changed)
 ynh_config_add_systemd
 ynh_config_add_nginx
 
+# Re-render .env from settings — upgrades from before the config panel
+# might have a stale or hand-edited file. Idempotent.
+llm_provider="$(ynh_app_setting_get --key=llm_provider)"
+llm_api_key="$(ynh_app_setting_get --key=llm_api_key)"
+ollama_url="$(ynh_app_setting_get --key=ollama_url)"
+share_secret="$(ynh_app_setting_get --key=share_secret)"
+if [ -n "$llm_provider" ] && [ -n "$share_secret" ]; then
+    render_env_file "$install_dir" "$llm_provider" "$llm_api_key" "$ollama_url" "$share_secret"
+fi
+
 ynh_script_progression "Starting Ahwa..."
 ynh_systemctl --service="$app" --action="start" --log_path="systemd"
 
