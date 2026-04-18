@@ -27,7 +27,7 @@ SSH := ssh -tt $(AHWA_YNH_HOST)
 LINTER_DIR := $(HOME)/.cache/ahwa-yunohost-linter
 LINTER     := $(LINTER_DIR)/package_linter.py
 
-.PHONY: help lint deploy install upgrade remove logs status snapshot restore-snapshot domain-list
+.PHONY: help lint deploy install upgrade remove logs status snapshot restore-snapshot domain-list sso-test
 
 help:
 	@echo "Targets:"
@@ -41,6 +41,8 @@ help:
 	@echo "  snapshot          create a YNH backup of the app"
 	@echo "  restore-snapshot  restore from latest snapshot"
 	@echo "  domain-list       list domains on the VPS"
+	@echo "  sso-test          run end-to-end SSO check against the VPS install"
+	@echo "                    (requires AHWA_TEST_USER + AHWA_TEST_PASSWORD)"
 
 # --- Layer 1: lint -----------------------------------------------------
 
@@ -84,14 +86,14 @@ deploy: require-domain rsync-package
 	  $(SSH) 'sudo yunohost app install $(REMOTE_DIR) \
 	    --force \
 	    --label "Ahwa (test)" \
-	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=visitors"'; \
+	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=all_users"'; \
 	fi
 
 install: require-domain rsync-package
 	@$(SSH) 'sudo yunohost app remove $(AHWA_YNH_APP) 2>/dev/null; \
 	  sudo yunohost app install $(REMOTE_DIR) \
 	    --label "Ahwa (test)" \
-	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=visitors"'
+	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=all_users"'
 
 upgrade: rsync-package
 	@$(SSH) 'sudo yunohost app upgrade $(AHWA_YNH_APP) -f $(REMOTE_DIR) --force'
@@ -113,3 +115,19 @@ restore-snapshot:
 
 domain-list:
 	@$(SSH) 'sudo yunohost domain list'
+
+# --- SSO end-to-end ----------------------------------------------------
+#
+# Hits the live install with a YNH user's session cookie and asserts
+# /api/me reports the right external_id. Assumes the install uses the
+# default 'all_users' permission (set by `make deploy`); a 'visitors'-
+# permission install would let the request through without auth and
+# never set Auth-User.
+
+sso-test: require-domain
+	@test -n "$(AHWA_TEST_USER)"     || (echo "AHWA_TEST_USER is required";     exit 1)
+	@test -n "$(AHWA_TEST_PASSWORD)" || (echo "AHWA_TEST_PASSWORD is required"; exit 1)
+	@bash tests/sso-e2e.sh \
+	  "https://$(AHWA_YNH_DOMAIN)$(AHWA_YNH_PATH)" \
+	  "$(AHWA_TEST_USER)" \
+	  "$(AHWA_TEST_PASSWORD)"

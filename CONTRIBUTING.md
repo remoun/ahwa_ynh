@@ -74,6 +74,31 @@ make restore-snapshot
 make remove          # nuke and start fresh
 ```
 
+## SSO end-to-end check
+
+`package_check` exercises install/remove/upgrade/backup/restore but
+its `tests.toml` schema has no hook for custom assertions, so the
+SSO header-forwarding check (SSOwat → nginx → Ahwa `Auth-User` →
+`/api/me`) runs as a separate job. From the Mac:
+
+```bash
+export AHWA_TEST_USER=<a YNH login>
+export AHWA_TEST_PASSWORD=<their password>
+make sso-test
+```
+
+`make sso-test` runs [`tests/sso-e2e.sh`](./tests/sso-e2e.sh) against
+the live install. Assumes `make deploy` was used (which sets
+`init_main_permission=all_users`), so SSOwat actually intercepts the
+request and sets `Auth-User`. A `visitors`-permission install would let
+the request through unauthenticated and `/api/me` would always return
+`external_id: null`.
+
+The same script runs in CI via [`.github/workflows/sso-e2e.yml`](./.github/workflows/sso-e2e.yml)
+on `workflow_dispatch` and on pushes that touch the install/upgrade
+scripts or systemd/nginx config. Required repo secrets:
+`AHWA_TEST_USER`, `AHWA_TEST_PASSWORD`, `AHWA_TEST_URL`.
+
 ## Why not LXC / package_check locally on macOS?
 
 `package_check` uses LXC/Incus for container snapshots, which
