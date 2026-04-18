@@ -8,7 +8,7 @@ name = "Ahwa"
 description.en = "Private AI deliberation rooms — convene a council of personas to think through a dilemma"
 description.fr = "Salles de délibération IA privées — réunir un conseil de personas pour réfléchir à un dilemme"
 
-version = "0.0.1~ynh1"
+version = "0.1.0~ynh1"
 
 maintainers = ["remoun"]
 
@@ -81,8 +81,8 @@ ram.runtime = "256M"
     # network-isolated LXC scenarios work. Bump the version + sha256 here
     # when cutting a new ahwa release; autoupdate handles routine bumps.
     [resources.sources.main]
-    url = "https://github.com/remoun/ahwa/archive/refs/tags/v0.0.1.tar.gz"
-    sha256 = "efdd232df3a9886c7df38b0c57af03b015f3143d11261c6a6498e86cd1560470"
+    url = "https://github.com/remoun/ahwa/archive/refs/tags/v0.1.0.tar.gz"
+    sha256 = "4fc56adb73560dc7993b85dec1cd723589d489f9bee9b66ec75329d9545b4b10"
     autoupdate.strategy = "latest_github_release"
 
     [resources.system_user]
