@@ -32,7 +32,7 @@ sudo yunohost app install https://github.com/remoun/ahwa_ynh
 
 ## Working on the package
 
-See [README-DEV.md](./README-DEV.md) for the local iteration loop
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the local iteration loop
 (linter, live VPS install, package_check).
 
 ## Upstream

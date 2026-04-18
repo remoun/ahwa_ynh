@@ -35,7 +35,7 @@ sudo yunohost app install https://github.com/remoun/ahwa_ynh
 
 ## Travailler sur le paquet
 
-Voir [README-DEV.md](./README-DEV.md) pour la boucle d'itération
+Voir [CONTRIBUTING.md](./CONTRIBUTING.md) pour la boucle d'itération
 locale (linter, installation VPS en direct, package_check).
 
 ## Amont
