@@ -20,10 +20,11 @@ name.fr = "Fournisseur LLM"
         choices = ["openrouter", "anthropic", "openai", "ollama"]
 
         [main.providers.llm_api_key]
-        ask.en = "API key (blank for Ollama)"
-        ask.fr = "Clé API (vide pour Ollama)"
+        ask.en = "API key"
+        ask.fr = "Clé API"
         type = "password"
         optional = true
+        visible = "llm_provider != 'ollama'"
 
         [main.providers.ollama_url]
         ask.en = "Ollama base URL"
@@ -31,3 +32,4 @@ name.fr = "Fournisseur LLM"
         type = "string"
         optional = true
         default = "http://localhost:11434/api"
+        visible = "llm_provider == 'ollama'"

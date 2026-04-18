@@ -56,19 +56,21 @@ ram.runtime = "256M"
     help.fr = "OpenRouter est le plus simple : une seule clé pour accéder à plusieurs modèles, avec une offre gratuite. Choisissez Ollama uniquement si vous avez une installation locale à l'URL ci-dessous."
 
     [install.llm_api_key]
-    ask.en = "API key for the chosen provider (leave blank for Ollama)"
-    ask.fr = "Clé API du fournisseur choisi (laisser vide pour Ollama)"
+    ask.en = "API key for the chosen provider"
+    ask.fr = "Clé API du fournisseur choisi"
     type = "password"
     optional = true
+    visible = "llm_provider != 'ollama'"
     help.en = "Required for Anthropic, OpenAI, or OpenRouter. Stored in $install_dir/.env, readable only by the ahwa system user. Editable later via the YunoHost app config panel."
     help.fr = "Obligatoire pour Anthropic, OpenAI ou OpenRouter. Stockée dans $install_dir/.env, lisible uniquement par l'utilisateur système ahwa. Modifiable ultérieurement via le panneau de configuration YunoHost."
 
     [install.ollama_url]
-    ask.en = "Ollama base URL (only used if provider is Ollama)"
-    ask.fr = "URL de base Ollama (utilisée uniquement si le fournisseur est Ollama)"
+    ask.en = "Ollama base URL"
+    ask.fr = "URL de base Ollama"
     type = "string"
     optional = true
     default = "http://localhost:11434/api"
+    visible = "llm_provider == 'ollama'"
 
 [resources]
     # No `sources` block: the install script clones the repo directly so
