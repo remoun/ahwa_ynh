@@ -30,10 +30,15 @@ PORTAL="$(echo "$APP_URL" | awk -F/ '{print $1"//"$3}')"
 cookie_jar="$(mktemp)"
 trap 'rm -f "$cookie_jar"' EXIT
 
+# -k accepts self-signed certs: a fresh test domain may not have its
+# Let's Encrypt cert provisioned yet, and the test cares about header
+# forwarding through nginx, not TLS validity.
+CURL_OPTS=(-sS -k)
+
 # 1. Login via the YunoHost portal API. SSOwat sets a session cookie
 #    that nginx subsequently translates into the Auth-User header
 #    when the cookie hits any reverse-proxied app.
-login_status=$(curl -sS -o /dev/null -w '%{http_code}' \
+login_status=$(curl "${CURL_OPTS[@]}" -o /dev/null -w '%{http_code}' \
     -c "$cookie_jar" \
     -H 'Content-Type: application/json' \
     --data "{\"credentials\":\"${USER}:${PASS}\"}" \
@@ -47,7 +52,7 @@ fi
 
 # 2. Hit /api/me with the session cookie. Expect a JSON body whose
 #    external_id matches the YNH login.
-me_response=$(curl -sS -b "$cookie_jar" "${APP_URL}/api/me")
+me_response=$(curl "${CURL_OPTS[@]}" -b "$cookie_jar" "${APP_URL}/api/me")
 
 # Parse external_id without jq dependency (pure POSIX shell).
 external_id=$(printf '%s' "$me_response" \
