@@ -7,8 +7,8 @@ test_format = 1.0
 
 [default]
     # Standard scenarios. package_check will install/remove/upgrade/
-    # backup-restore the app under each set of question answers below.
-    exclude = ["test_change_url"]   # change_url script not yet implemented
+    # backup-restore (and now also change_url) under each set of
+    # question answers below.
 
     # Visitors-public install: anyone can hit the app without logging in.
     # Useful for exercising the public-demo path in package_check, but

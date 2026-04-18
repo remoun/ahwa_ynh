@@ -1,0 +1,23 @@
+#!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Smooths re-hosting: lets a YNH admin move the app from one
+# domain/path to another via `yunohost app change-url ahwa --domain
+# new.example.com --path /` without uninstall/reinstall.
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+ynh_script_progression "Stopping Ahwa..."
+ynh_systemctl --service="$app" --action="stop" --log_path="systemd"
+
+ynh_script_progression "Re-rendering nginx config for the new URL..."
+# YNH renders the nginx template to the new domain's conf.d directory
+# and removes the old one. The template uses __PATH__ which YNH
+# substitutes from the new install path.
+ynh_config_change_url_nginx
+
+ynh_script_progression "Starting Ahwa..."
+ynh_systemctl --service="$app" --action="start" --log_path="systemd"
+
+ynh_script_progression "URL change complete."

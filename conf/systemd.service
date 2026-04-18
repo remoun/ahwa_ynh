@@ -30,13 +30,42 @@ ExecStart=__INSTALL_DIR__/.bun/bin/bun --bun build/index.js
 Restart=on-failure
 RestartSec=5
 
-# Hardening
+# Hardening — sandboxing per the YNH example_ynh baseline.
+# https://github.com/YunoHost/example_ynh/blob/main/conf/systemd.service
+#
 # ProtectHome is intentionally NOT enabled — YNH's data_dir lives under
 # /home/yunohost.app/__APP__/ which would be hidden by ProtectHome.
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
 ProtectSystem=strict
 ReadWritePaths=__DATA_DIR__ __INSTALL_DIR__
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+DevicePolicy=closed
+ProtectClock=true
+ProtectHostname=true
+ProtectProc=invisible
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+LockPersonality=true
+SystemCallArchitectures=native
+SystemCallFilter=~@clock @debug @module @mount @obsolete @reboot @setuid @swap @cpu-emulation @privileged
+
+# Capability drops — none of these are needed by a SvelteKit + Bun
+# webapp; revoking the bounding set defends against future bugs in
+# Bun or one of its native deps.
+CapabilityBoundingSet=~CAP_RAWIO CAP_MKNOD
+CapabilityBoundingSet=~CAP_AUDIT_CONTROL CAP_AUDIT_READ CAP_AUDIT_WRITE
+CapabilityBoundingSet=~CAP_SYS_BOOT CAP_SYS_TIME CAP_SYS_MODULE CAP_SYS_PACCT
+CapabilityBoundingSet=~CAP_LEASE CAP_LINUX_IMMUTABLE CAP_IPC_LOCK
+CapabilityBoundingSet=~CAP_BLOCK_SUSPEND CAP_WAKE_ALARM
+CapabilityBoundingSet=~CAP_SYS_TTY_CONFIG
+CapabilityBoundingSet=~CAP_MAC_ADMIN CAP_MAC_OVERRIDE
+CapabilityBoundingSet=~CAP_NET_ADMIN CAP_NET_BROADCAST CAP_NET_RAW
+CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_SYSLOG
 
 [Install]
 WantedBy=multi-user.target
