@@ -40,7 +40,10 @@ if [ ! -f "$install_dir/.env" ]; then
     [ -n "$llm_provider" ] && [ -n "$share_secret" ] && \
         render_env_file "$install_dir" "$llm_provider" "$llm_api_key" "$ollama_url" "$share_secret"
 fi
-[ -f "$install_dir/.env" ] && chmod 600 "$install_dir/.env" && chown "$app:$app" "$install_dir/.env"
+if [ -f "$install_dir/.env" ]; then
+    chmod 600 "$install_dir/.env"
+    chown "$app:$app" "$install_dir/.env"
+fi
 
 systemctl daemon-reload
 ynh_systemctl --service="$app" --action="start" --log_path="systemd"
