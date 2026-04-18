@@ -87,10 +87,12 @@ export AHWA_TEST_PASSWORD=<their password>
 make sso-test
 ```
 
-`make sso-test` flips the `ahwa.main` permission from
-`visitors` → `all_users` for the duration of the test (otherwise
-SSOwat doesn't intercept and `external_id` is always null), runs
-[`tests/sso-e2e.sh`](./tests/sso-e2e.sh), then restores `visitors`.
+`make sso-test` runs [`tests/sso-e2e.sh`](./tests/sso-e2e.sh) against
+the live install. Assumes `make deploy` was used (which sets
+`init_main_permission=all_users`), so SSOwat actually intercepts the
+request and sets `Auth-User`. A `visitors`-permission install would let
+the request through unauthenticated and `/api/me` would always return
+`external_id: null`.
 
 The same script runs in CI via [`.github/workflows/sso-e2e.yml`](./.github/workflows/sso-e2e.yml)
 on `workflow_dispatch` and on pushes that touch the install/upgrade

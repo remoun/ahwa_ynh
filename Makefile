@@ -86,14 +86,14 @@ deploy: require-domain rsync-package
 	  $(SSH) 'sudo yunohost app install $(REMOTE_DIR) \
 	    --force \
 	    --label "Ahwa (test)" \
-	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=visitors"'; \
+	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=all_users"'; \
 	fi
 
 install: require-domain rsync-package
 	@$(SSH) 'sudo yunohost app remove $(AHWA_YNH_APP) 2>/dev/null; \
 	  sudo yunohost app install $(REMOTE_DIR) \
 	    --label "Ahwa (test)" \
-	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=visitors"'
+	    --args "domain=$(AHWA_YNH_DOMAIN)&path=$(AHWA_YNH_PATH)&init_main_permission=all_users"'
 
 upgrade: rsync-package
 	@$(SSH) 'sudo yunohost app upgrade $(AHWA_YNH_APP) -f $(REMOTE_DIR) --force'
@@ -118,16 +118,16 @@ domain-list:
 
 # --- SSO end-to-end ----------------------------------------------------
 #
-# Flips the ahwa.main permission from visitors → all_users for the
-# duration of the test (otherwise SSOwat doesn't intercept and external_id
-# is always null), runs tests/sso-e2e.sh, then restores visitors.
+# Hits the live install with a YNH user's session cookie and asserts
+# /api/me reports the right external_id. Assumes the install uses the
+# default 'all_users' permission (set by `make deploy`); a 'visitors'-
+# permission install would let the request through without auth and
+# never set Auth-User.
 
 sso-test: require-domain
 	@test -n "$(AHWA_TEST_USER)"     || (echo "AHWA_TEST_USER is required";     exit 1)
 	@test -n "$(AHWA_TEST_PASSWORD)" || (echo "AHWA_TEST_PASSWORD is required"; exit 1)
-	@bash tests/run-sso-test.sh \
-	  "$(SSH)" \
-	  "$(AHWA_YNH_APP)" \
+	@bash tests/sso-e2e.sh \
 	  "https://$(AHWA_YNH_DOMAIN)$(AHWA_YNH_PATH)" \
 	  "$(AHWA_TEST_USER)" \
 	  "$(AHWA_TEST_PASSWORD)"
