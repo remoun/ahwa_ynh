@@ -71,13 +71,25 @@ jobs:
         env:
           DIST: ${{ inputs.dist }}
           YNH_BRANCH: ${{ inputs.ynh_branch }}
-        run: '"$HOME/package_check/package_check.sh" "$GITHUB_WORKSPACE"'
+        run: |
+          set -o pipefail
+          # package_check.sh exits 0 even when every install fails — its
+          # "real" verdict is the FAIL/PASS markers and the final quality
+          # level. Tee to a file so we can grep it after the run.
+          OUT=/tmp/package-check.log
+          "$HOME/package_check/package_check.sh" "$GITHUB_WORKSPACE" 2>&1 | tee "$OUT"
+          # Strip ANSI before grep so colorised "--- FAIL ---" lines match.
+          if sed 's/\x1b\[[0-9;]*m//g' "$OUT" | grep -qE '^--- FAIL ---$'; then
+            echo "::error::package_check reported test failure(s)"
+            exit 1
+          fi
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: package-check-results
           path: |
+            /tmp/package-check.log
             **/results.json
             **/summary.png
-          if-no-files-found: ignore
+          if-no-files-found: warn
