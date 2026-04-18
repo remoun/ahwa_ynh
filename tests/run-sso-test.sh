@@ -35,11 +35,12 @@ run_remote() {
 }
 
 restore_visitors() {
-    run_remote "sudo yunohost user permission update ${APP}.main --add visitors --remove all_users" >/dev/null 2>&1 || true
+    run_remote "sudo yunohost user permission remove ${APP}.main all_users; sudo yunohost user permission add ${APP}.main visitors" >/dev/null 2>&1 || true
 }
 trap restore_visitors EXIT
 
-run_remote "sudo yunohost user permission update ${APP}.main --remove visitors --add all_users"
+run_remote "sudo yunohost user permission remove ${APP}.main visitors"
+run_remote "sudo yunohost user permission add ${APP}.main all_users"
 
 # The script's exit code becomes our exit code; trap restores perms either way.
 HERE="$(cd "$(dirname "$0")" && pwd)"
