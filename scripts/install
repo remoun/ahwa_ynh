@@ -9,12 +9,11 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# CLONE SOURCE
+# SOURCE
 #=================================================
-ynh_script_progression "Fetching Ahwa source..."
-
-mkdir -p "$install_dir/src"
-git clone --depth 1 --branch main https://github.com/remoun/ahwa.git "$install_dir/src"
+# YNH already extracted [resources.sources.main] into $install_dir before
+# this script ran (the [provision] phase). Just chown so the app user
+# can run bun against it.
 
 chown -R "$app:$app" "$install_dir"
 

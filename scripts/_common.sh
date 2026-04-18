@@ -10,7 +10,7 @@
 # the file in one PR updates every deployment path.
 read_bun_version() {
     local install_dir="$1"
-    local f="$install_dir/src/.bun-version"
+    local f="$install_dir/.bun-version"
     if [ ! -f "$f" ]; then
         ynh_die --message="missing $f — repo is out of sync with this packaging"
     fi
@@ -73,7 +73,7 @@ render_env_file() {
     chmod 600 "$env_file"
 }
 
-# Run the vendored bun as the app user, with cwd at $install_dir/src.
+# Run the vendored bun as the app user, with cwd at $install_dir.
 # Replaces three-line pushd/run/popd dances at every call site:
 #
 #     bun_app "install --frozen-lockfile"
@@ -85,7 +85,7 @@ render_env_file() {
 bun_app() {
     local install_dir="$1"
     shift
-    pushd "$install_dir/src" >/dev/null || ynh_die --message="cannot enter $install_dir/src"
+    pushd "$install_dir" >/dev/null || ynh_die --message="cannot enter $install_dir"
     ynh_exec_as_app "$install_dir/.bun/bin/bun" "$@"
     popd >/dev/null || true
 }

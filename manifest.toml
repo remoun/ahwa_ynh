@@ -73,9 +73,17 @@ ram.runtime = "256M"
     visible = "llm_provider == 'ollama'"
 
 [resources]
-    # No `sources` block: the install script clones the repo directly so
-    # we can iterate without cutting a tagged release for every change.
-    # Switch to a tarball-based source once we have stable tagged releases.
+
+    # YNH fetches and verifies the upstream tarball before scripts/install
+    # runs, so the install script can assume the source tree is already
+    # at $install_dir/. No git clone, no DNS dependency at install time —
+    # which the catalog reviewers expect AND which makes package_check's
+    # network-isolated LXC scenarios work. Bump the version + sha256 here
+    # when cutting a new ahwa release; autoupdate handles routine bumps.
+    [resources.sources.main]
+    url = "https://github.com/remoun/ahwa/archive/refs/tags/v0.0.1.tar.gz"
+    sha256 = "efdd232df3a9886c7df38b0c57af03b015f3143d11261c6a6498e86cd1560470"
+    autoupdate.strategy = "latest_github_release"
 
     [resources.system_user]
 
@@ -86,7 +94,7 @@ ram.runtime = "256M"
     [resources.ports]
 
     [resources.apt]
-    packages = "git, curl, ca-certificates, unzip"
+    packages = "curl, ca-certificates, unzip"
 
     [resources.permissions]
     main.url = "/"
