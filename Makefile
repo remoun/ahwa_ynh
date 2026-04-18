@@ -27,7 +27,7 @@ SSH := ssh -tt $(AHWA_YNH_HOST)
 LINTER_DIR := $(HOME)/.cache/ahwa-yunohost-linter
 LINTER     := $(LINTER_DIR)/package_linter.py
 
-.PHONY: help lint deploy install upgrade remove logs status snapshot restore-snapshot domain-list
+.PHONY: help lint deploy install upgrade remove logs status snapshot restore-snapshot domain-list sso-test
 
 help:
 	@echo "Targets:"
@@ -41,6 +41,8 @@ help:
 	@echo "  snapshot          create a YNH backup of the app"
 	@echo "  restore-snapshot  restore from latest snapshot"
 	@echo "  domain-list       list domains on the VPS"
+	@echo "  sso-test          run end-to-end SSO check against the VPS install"
+	@echo "                    (requires AHWA_TEST_USER + AHWA_TEST_PASSWORD)"
 
 # --- Layer 1: lint -----------------------------------------------------
 
@@ -113,3 +115,21 @@ restore-snapshot:
 
 domain-list:
 	@$(SSH) 'sudo yunohost domain list'
+
+# --- SSO end-to-end ----------------------------------------------------
+#
+# Flips the ahwa.main permission from visitors → all_users for the
+# duration of the test (otherwise SSOwat doesn't intercept and external_id
+# is always null), runs tests/sso-e2e.sh, then restores visitors.
+
+sso-test: require-domain
+	@test -n "$(AHWA_TEST_USER)"     || (echo "AHWA_TEST_USER is required";     exit 1)
+	@test -n "$(AHWA_TEST_PASSWORD)" || (echo "AHWA_TEST_PASSWORD is required"; exit 1)
+	@$(SSH) 'sudo yunohost user permission update $(AHWA_YNH_APP).main --remove visitors --add all_users'
+	@bash tests/sso-e2e.sh \
+	  "https://$(AHWA_YNH_DOMAIN)$(AHWA_YNH_PATH)" \
+	  "$(AHWA_TEST_USER)" \
+	  "$(AHWA_TEST_PASSWORD)"; \
+	  rc=$$?; \
+	  $(SSH) 'sudo yunohost user permission update $(AHWA_YNH_APP).main --add visitors --remove all_users' >/dev/null; \
+	  exit $$rc

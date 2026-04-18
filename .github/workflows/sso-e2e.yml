@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: SSO E2E
+
+# package_check (the YNH lifecycle harness) doesn't have a custom-test
+# hook — its tests.toml schema is closed. So the SSO assertion runs as
+# its own job against the live VPS test install. workflow_dispatch + on
+# pushes that touch the install/upgrade scripts or systemd/nginx config,
+# since those are the surfaces that can break SSO header forwarding.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/install'
+      - 'scripts/upgrade'
+      - 'scripts/_common.sh'
+      - 'conf/systemd.service'
+      - 'conf/nginx.conf'
+      - 'tests/sso-e2e.sh'
+      - '.github/workflows/sso-e2e.yml'
+
+jobs:
+  sso-e2e:
+    runs-on: [self-hosted, package-check]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run SSO end-to-end check
+        env:
+          # Secrets are passed via env, never interpolated into the run:
+          # shell directly — see the GitHub Actions injection guide.
+          AHWA_TEST_USER: ${{ secrets.AHWA_TEST_USER }}
+          AHWA_TEST_PASSWORD: ${{ secrets.AHWA_TEST_PASSWORD }}
+          AHWA_TEST_URL: ${{ secrets.AHWA_TEST_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AHWA_TEST_URL:-}" ]; then
+            echo "::error::AHWA_TEST_URL secret is not set (e.g. https://ahwa-test.example.com/)"
+            exit 1
+          fi
+          # The runner runs as gha-runner on the same VPS that hosts
+          # the test install, so we hit the local nginx directly. No
+          # SSH hop needed.
+          bash tests/sso-e2e.sh "$AHWA_TEST_URL" "$AHWA_TEST_USER" "$AHWA_TEST_PASSWORD"
