@@ -19,7 +19,7 @@ ynh_app_config_apply() {
     share_secret="$(ynh_app_setting_get --key=share_secret)"
     if [ -z "$share_secret" ]; then
         # Older installs: backfill so the share_secret survives panel edits.
-        share_secret="$(openssl rand -hex 32)"
+        share_secret="$(ynh_string_random --length=64 --filter='a-f0-9')"
         ynh_app_setting_set --key=share_secret --value="$share_secret"
     fi
 
