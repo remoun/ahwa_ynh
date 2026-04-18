@@ -1,0 +1,19 @@
+#!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Verified against YNH 12.1.39 via package_check (LXC bookworm/stable).
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+ynh_script_progression "Removing systemd unit..."
+ynh_config_remove_systemd
+
+ynh_script_progression "Removing nginx config..."
+ynh_config_remove_nginx
+
+# install_dir, data_dir, system_user, ports, apt deps, permissions
+# are all torn down automatically by their corresponding [resources]
+# blocks in manifest.toml.
+
+ynh_script_progression "Ahwa removed."

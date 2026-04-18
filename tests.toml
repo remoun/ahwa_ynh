@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# package_check test matrix. See:
+# https://github.com/YunoHost/package_check
+
+test_format = 1.0
+
+[default]
+    # Standard scenarios. package_check will install/remove/upgrade/
+    # backup-restore the app under each set of question answers below.
+    exclude = ["test_change_url"]   # change_url script not yet implemented
+
+    # Visitors-public install: anyone can hit the app without logging in.
+    # Useful for exercising the public-demo path in package_check, but
+    # the YNH default install is per-user via SSO. Uncomment if you
+    # want package_check to also cover a visitors-public install.
+    # args.init_main_permission = "visitors"
+
+    # Upgrade-from tests added once we have stable release tags to
+    # upgrade from. For now, install/remove/backup-restore is enough
+    # to validate the basic shape of the package.

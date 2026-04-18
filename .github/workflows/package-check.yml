@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dist:
+        description: 'Debian distribution'
+        default: 'bookworm'
+        type: choice
+        options:
+          - bookworm
+      ynh_branch:
+        description: 'YunoHost branch'
+        default: 'stable'
+        type: choice
+        options:
+          - stable
+          - testing
+          - unstable
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Clone package_linter
+        run: git clone --depth 1 https://github.com/YunoHost/package_linter.git /tmp/package_linter
+      - name: Install linter deps
+        run: pip install -r /tmp/package_linter/requirements.txt
+      - name: Lint
+        run: |
+          set +e
+          OUT=$(python3 /tmp/package_linter/package_linter.py . 2>&1)
+          echo "$OUT"
+          NON_CATALOG=$(echo "$OUT" | sed 's/\x1b\[[0-9;]*m//g' | grep -E "^\s*✘[^✘]" | wc -l)
+          if [ "$NON_CATALOG" -gt 0 ]; then
+            echo "::error::$NON_CATALOG non-catalog critical issue(s)"
+            exit 1
+          fi
+          echo "lint: ok (catalog warning expected)"
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo apt-get install -y shellcheck
+      - run: shellcheck -e SC1091,SC2154 scripts/*
+
+  package-check:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, package-check]
+    needs: lint
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - name: Refresh package_check
+        run: |
+          if [ ! -d "$HOME/package_check" ]; then
+            git clone https://github.com/YunoHost/package_check "$HOME/package_check"
+          else
+            git -C "$HOME/package_check" pull --ff-only
+          fi
+      - name: Run package_check (install / remove / upgrade / backup / restore)
+        env:
+          DIST: ${{ inputs.dist }}
+          YNH_BRANCH: ${{ inputs.ynh_branch }}
+        run: '"$HOME/package_check/package_check.sh" "$GITHUB_WORKSPACE"'
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-check-results
+          path: |
+            **/results.json
+            **/summary.png
+          if-no-files-found: ignore

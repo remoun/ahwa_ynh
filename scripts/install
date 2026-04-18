@@ -1,0 +1,70 @@
+#!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Verified against YNH 12.1.39 on a live VPS install + via package_check
+# in CI (LXC bookworm/stable). Iterate locally via `make deploy` from
+# the parent directory; see docs/yunohost-dev.md.
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# CLONE SOURCE
+#=================================================
+ynh_script_progression "Fetching Ahwa source..."
+
+mkdir -p "$install_dir/src"
+git clone --depth 1 --branch main https://github.com/remoun/ahwa.git "$install_dir/src"
+
+chown -R "$app:$app" "$install_dir"
+
+#=================================================
+# INSTALL BUN
+#=================================================
+ynh_script_progression "Installing Bun runtime..."
+
+install_bun "$install_dir"
+chown -R "$app:$app" "$install_dir/.bun"
+
+#=================================================
+# BUILD
+#=================================================
+ynh_script_progression "Building Ahwa..."
+
+# Install ALL deps (vite/svelte/tailwind are devDeps but needed to build).
+bun_app "$install_dir" install --frozen-lockfile
+bun_app "$install_dir" run build
+# Prune to production deps after build to shrink the install footprint.
+bun_app "$install_dir" install --production --frozen-lockfile
+
+#=================================================
+# DATA DIR
+#=================================================
+ynh_script_progression "Preparing data directory..."
+
+# data_dir is provisioned by [resources.data_dir]. The app creates the
+# SQLite file on first run via Drizzle migrations.
+chown -R "$app:$app" "$data_dir"
+
+#=================================================
+# SYSTEMD
+#=================================================
+ynh_script_progression "Configuring systemd service..."
+
+ynh_config_add_systemd
+
+#=================================================
+# NGINX
+#=================================================
+ynh_script_progression "Configuring nginx..."
+
+ynh_config_add_nginx
+
+#=================================================
+# START SERVICE
+#=================================================
+ynh_script_progression "Starting Ahwa..."
+
+ynh_systemctl --service="$app" --action="start" --log_path="systemd"
+
+ynh_script_progression "Installation complete."

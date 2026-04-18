@@ -1,0 +1,42 @@
+[Unit]
+Description=Ahwa - private AI deliberation rooms
+After=network.target
+
+[Service]
+Type=simple
+User=__APP__
+Group=__APP__
+WorkingDirectory=__INSTALL_DIR__/src
+
+Environment=PORT=__PORT__
+Environment=AHWA_DATA_DIR=__DATA_DIR__
+Environment=NODE_ENV=production
+
+# SSOwat forwards the authenticated user via this header. Identity
+# trust is opt-in everywhere except this YNH-shipped systemd unit,
+# where it's enabled by default (see invariant #5 in CLAUDE.md and
+# src/lib/server/identity.ts).
+Environment=AHWA_TRUST_IDENTITY=1
+Environment=AHWA_IDENTITY_HEADER=Auth-User
+
+# Operator-supplied LLM provider keys go in __INSTALL_DIR__/.env.
+# This file is intentionally NOT created by the install script; the
+# admin populates it post-install. The service starts without keys
+# and refuses deliberations until at least one is configured.
+EnvironmentFile=-__INSTALL_DIR__/.env
+
+ExecStart=__INSTALL_DIR__/.bun/bin/bun --bun build/index.js
+
+Restart=on-failure
+RestartSec=5
+
+# Hardening
+# ProtectHome is intentionally NOT enabled — YNH's data_dir lives under
+# /home/yunohost.app/__APP__/ which would be hidden by ProtectHome.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=__DATA_DIR__ __INSTALL_DIR__
+
+[Install]
+WantedBy=multi-user.target

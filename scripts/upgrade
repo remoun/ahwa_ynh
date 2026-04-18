@@ -1,0 +1,30 @@
+#!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# Verified against YNH 12.1.39 via package_check (LXC bookworm/stable).
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+ynh_script_progression "Stopping Ahwa..."
+ynh_systemctl --service="$app" --action="stop" --log_path="systemd"
+
+ynh_script_progression "Pulling latest source..."
+pushd "$install_dir/src" >/dev/null || ynh_die --message="cannot enter $install_dir/src"
+ynh_exec_as_app git fetch --depth 1 origin main
+ynh_exec_as_app git reset --hard origin/main
+popd >/dev/null || true
+
+ynh_script_progression "Rebuilding..."
+bun_app "$install_dir" install --frozen-lockfile
+bun_app "$install_dir" run build
+bun_app "$install_dir" install --production --frozen-lockfile
+
+ynh_script_progression "Re-rendering systemd + nginx (in case templates changed)..."
+ynh_config_add_systemd
+ynh_config_add_nginx
+
+ynh_script_progression "Starting Ahwa..."
+ynh_systemctl --service="$app" --action="start" --log_path="systemd"
+
+ynh_script_progression "Upgrade complete."
