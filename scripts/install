@@ -11,10 +11,15 @@ source /usr/share/yunohost/helpers
 #=================================================
 # SOURCE
 #=================================================
-# YNH already extracted [resources.sources.main] into $install_dir before
-# this script ran (the [provision] phase). Just chown so the app user
-# can run bun against it.
+# Fetch the upstream tarball declared in manifest.toml's
+# [resources.sources.main]. ynh_setup_source verifies the sha256 and
+# extracts to $install_dir, stripping the leading ahwa-VERSION/ dir.
+# The [resources.sources] block ALONE doesn't extract — the script has
+# to call ynh_setup_source explicitly. (Provisioning creates the empty
+# install_dir; the source isn't auto-staged into it.)
+ynh_script_progression "Fetching Ahwa source..."
 
+ynh_setup_source --dest_dir="$install_dir"
 chown -R "$app:$app" "$install_dir"
 
 #=================================================
