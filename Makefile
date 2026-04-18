@@ -125,11 +125,9 @@ domain-list:
 sso-test: require-domain
 	@test -n "$(AHWA_TEST_USER)"     || (echo "AHWA_TEST_USER is required";     exit 1)
 	@test -n "$(AHWA_TEST_PASSWORD)" || (echo "AHWA_TEST_PASSWORD is required"; exit 1)
-	@$(SSH) 'sudo yunohost user permission update $(AHWA_YNH_APP).main --remove visitors --add all_users'
-	@bash tests/sso-e2e.sh \
+	@bash tests/run-sso-test.sh \
+	  "$(SSH)" \
+	  "$(AHWA_YNH_APP)" \
 	  "https://$(AHWA_YNH_DOMAIN)$(AHWA_YNH_PATH)" \
 	  "$(AHWA_TEST_USER)" \
-	  "$(AHWA_TEST_PASSWORD)"; \
-	  rc=$$?; \
-	  $(SSH) 'sudo yunohost user permission update $(AHWA_YNH_APP).main --add visitors --remove all_users' >/dev/null; \
-	  exit $$rc
+	  "$(AHWA_TEST_PASSWORD)"

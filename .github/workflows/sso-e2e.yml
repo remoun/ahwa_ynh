@@ -39,6 +39,12 @@ jobs:
             exit 1
           fi
           # The runner runs as gha-runner on the same VPS that hosts
-          # the test install, so we hit the local nginx directly. No
-          # SSH hop needed.
-          bash tests/sso-e2e.sh "$AHWA_TEST_URL" "$AHWA_TEST_USER" "$AHWA_TEST_PASSWORD"
+          # the test install. Empty SSH_CMD => run-sso-test.sh invokes
+          # `sudo yunohost ...` locally; gha-runner has NOPASSWD on
+          # /usr/bin/yunohost via /etc/sudoers.d/yunohost-cmnd.
+          bash tests/run-sso-test.sh \
+            "" \
+            "ahwa" \
+            "$AHWA_TEST_URL" \
+            "$AHWA_TEST_USER" \
+            "$AHWA_TEST_PASSWORD"
