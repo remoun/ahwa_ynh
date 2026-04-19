@@ -8,7 +8,7 @@ name = "Ahwa"
 description.en = "Private AI deliberation rooms — convene a council of personas to think through a dilemma"
 description.fr = "Salles de délibération IA privées — réunir un conseil de personas pour réfléchir à un dilemme"
 
-version = "0.2.1~ynh1"
+version = "0.2.2~ynh1"
 
 maintainers = ["remoun"]
 
@@ -88,8 +88,8 @@ ram.runtime = "256M"
     # build asset (rather than GitHub's auto-source tarball, which
     # would re-introduce the build step).
     [resources.sources.main]
-    url = "https://github.com/remoun/ahwa/releases/download/v0.2.1/ahwa-build-v0.2.1.tar.gz"
-    sha256 = "72c377481ceb2e23c6d05d25418677907d49ce7539584c1f916d091688237153"
+    url = "https://github.com/remoun/ahwa/releases/download/v0.2.2/ahwa-build-v0.2.2.tar.gz"
+    sha256 = "51ccba0da9b45ba852cf3a04de86af4ed6aa441bf26b9e0535f571c9a42b9472"
     autoupdate.strategy = "latest_github_release"
     autoupdate.asset = "ahwa-build-.*\\.tar\\.gz$"
 
