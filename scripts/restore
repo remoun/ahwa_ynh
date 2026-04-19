@@ -17,8 +17,7 @@ chown -R "$app:$app" "$install_dir"
 install_bun "$install_dir"
 chown -R "$app:$app" "$install_dir/.bun"
 
-bun_app "$install_dir" install --frozen-lockfile
-bun_app "$install_dir" run build
+# build/ is in the prebuilt tarball; only install runtime deps.
 bun_app "$install_dir" install --production --frozen-lockfile
 
 ynh_script_progression "Restoring data..."

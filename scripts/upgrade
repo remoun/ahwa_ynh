@@ -17,9 +17,8 @@ ynh_script_progression "Fetching upstream tarball..."
 ynh_setup_source --dest_dir="$install_dir"
 chown -R "$app:$app" "$install_dir"
 
-ynh_script_progression "Rebuilding..."
-bun_app "$install_dir" install --frozen-lockfile
-bun_app "$install_dir" run build
+ynh_script_progression "Installing production dependencies..."
+# build/ is in the new tarball; only refresh runtime deps.
 bun_app "$install_dir" install --production --frozen-lockfile
 
 ynh_script_progression "Re-rendering systemd + nginx (in case templates changed)..."

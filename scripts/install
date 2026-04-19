@@ -31,14 +31,13 @@ install_bun "$install_dir"
 chown -R "$app:$app" "$install_dir/.bun"
 
 #=================================================
-# BUILD
+# PRODUCTION DEPS
 #=================================================
-ynh_script_progression "Building Ahwa..."
+# build/ is in the release tarball already — only need to install the
+# production dependencies that build/index.js loads at runtime. No
+# 'bun run build' (saved ~2-3min on a 1GB-RAM LXC).
+ynh_script_progression "Installing production dependencies..."
 
-# Install ALL deps (vite/svelte/tailwind are devDeps but needed to build).
-bun_app "$install_dir" install --frozen-lockfile
-bun_app "$install_dir" run build
-# Prune to production deps after build to shrink the install footprint.
 bun_app "$install_dir" install --production --frozen-lockfile
 
 #=================================================
