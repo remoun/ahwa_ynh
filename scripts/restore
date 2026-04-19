@@ -8,17 +8,16 @@ source /usr/share/yunohost/helpers
 
 ynh_script_progression "Restoring Ahwa..."
 
-# Re-clone source + reinstall Bun + rebuild. Same as install, minus
-# the data_dir provisioning (data_dir is restored from backup below).
-mkdir -p "$install_dir/src"
-git clone --depth 1 --branch main https://github.com/remoun/ahwa.git "$install_dir/src"
+# Re-fetch source from the pinned tarball + reinstall Bun + rebuild.
+# Same as install, minus the data_dir provisioning (data_dir is restored
+# from backup below).
+ynh_setup_source --dest_dir="$install_dir"
 chown -R "$app:$app" "$install_dir"
 
 install_bun "$install_dir"
 chown -R "$app:$app" "$install_dir/.bun"
 
-bun_app "$install_dir" install --frozen-lockfile
-bun_app "$install_dir" run build
+# build/ is in the prebuilt tarball; only install runtime deps.
 bun_app "$install_dir" install --production --frozen-lockfile
 
 ynh_script_progression "Restoring data..."

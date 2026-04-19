@@ -8,7 +8,7 @@ name = "Ahwa"
 description.en = "Private AI deliberation rooms — convene a council of personas to think through a dilemma"
 description.fr = "Salles de délibération IA privées — réunir un conseil de personas pour réfléchir à un dilemme"
 
-version = "0.0.1~ynh1"
+version = "0.2.1~ynh1"
 
 maintainers = ["remoun"]
 
@@ -31,7 +31,10 @@ ldap = "not_relevant"
 sso = true
 
 disk = "300M"
-ram.build = "1G"
+# build/ comes pre-built in the release tarball, so no `bun run build`
+# at install time. install only does `bun install --production`, which
+# is bounded by deps size — 256M comfortably fits.
+ram.build = "256M"
 ram.runtime = "256M"
 
 [install]
@@ -73,9 +76,22 @@ ram.runtime = "256M"
     visible = "llm_provider == 'ollama'"
 
 [resources]
-    # No `sources` block: the install script clones the repo directly so
-    # we can iterate without cutting a tagged release for every change.
-    # Switch to a tarball-based source once we have stable tagged releases.
+
+    # Pinned to the prebuilt release asset (build/ + package.json +
+    # bun.lock + .bun-version), produced by ahwa's release-assets.yml
+    # workflow and attached to each GitHub release. install/upgrade
+    # only need `bun install --production` after extracting — no
+    # `bun run build`, which used to OOM/timeout on the 1GB-RAM LXC
+    # in package_check.
+    #
+    # autoupdate.asset filters the YNH apps autoupdate bot to the
+    # build asset (rather than GitHub's auto-source tarball, which
+    # would re-introduce the build step).
+    [resources.sources.main]
+    url = "https://github.com/remoun/ahwa/releases/download/v0.2.1/ahwa-build-v0.2.1.tar.gz"
+    sha256 = "72c377481ceb2e23c6d05d25418677907d49ce7539584c1f916d091688237153"
+    autoupdate.strategy = "latest_github_release"
+    autoupdate.asset = "ahwa-build-.*\\.tar\\.gz$"
 
     [resources.system_user]
 
@@ -86,7 +102,7 @@ ram.runtime = "256M"
     [resources.ports]
 
     [resources.apt]
-    packages = "git, curl, ca-certificates, unzip"
+    packages = "curl, ca-certificates, unzip"
 
     [resources.permissions]
     main.url = "/"

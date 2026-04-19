@@ -9,13 +9,17 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# CLONE SOURCE
+# SOURCE
 #=================================================
+# Fetch the upstream tarball declared in manifest.toml's
+# [resources.sources.main]. ynh_setup_source verifies the sha256 and
+# extracts to $install_dir, stripping the leading ahwa-VERSION/ dir.
+# The [resources.sources] block ALONE doesn't extract — the script has
+# to call ynh_setup_source explicitly. (Provisioning creates the empty
+# install_dir; the source isn't auto-staged into it.)
 ynh_script_progression "Fetching Ahwa source..."
 
-mkdir -p "$install_dir/src"
-git clone --depth 1 --branch main https://github.com/remoun/ahwa.git "$install_dir/src"
-
+ynh_setup_source --dest_dir="$install_dir"
 chown -R "$app:$app" "$install_dir"
 
 #=================================================
@@ -27,14 +31,13 @@ install_bun "$install_dir"
 chown -R "$app:$app" "$install_dir/.bun"
 
 #=================================================
-# BUILD
+# PRODUCTION DEPS
 #=================================================
-ynh_script_progression "Building Ahwa..."
+# build/ is in the release tarball already — only need to install the
+# production dependencies that build/index.js loads at runtime. No
+# 'bun run build' (saved ~2-3min on a 1GB-RAM LXC).
+ynh_script_progression "Installing production dependencies..."
 
-# Install ALL deps (vite/svelte/tailwind are devDeps but needed to build).
-bun_app "$install_dir" install --frozen-lockfile
-bun_app "$install_dir" run build
-# Prune to production deps after build to shrink the install footprint.
 bun_app "$install_dir" install --production --frozen-lockfile
 
 #=================================================
